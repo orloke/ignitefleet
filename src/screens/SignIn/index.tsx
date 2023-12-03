@@ -1,18 +1,21 @@
 import { Container, Slogan, Title } from './styles'
 
+import { WEB_CLIENT_ID } from '@env'
+import { GoogleSignin } from '@react-native-google-signin/google-signin'
+import { Realm, useApp } from '@realm/react'
+import { useState } from 'react'
+import { Alert } from 'react-native'
 import backgroundImg from '../../assets/background.png'
 import { Button } from '../../components/Button'
-import { ANDROID_CLIENT_ID, WEB_CLIENT_ID } from '@env'
-import { useEffect, useState } from 'react'
-import { GoogleSignin } from '@react-native-google-signin/google-signin'
-import { Alert } from 'react-native'
 
 GoogleSignin.configure({
   scopes: ['email', 'profile'],
   webClientId: WEB_CLIENT_ID,
+  offlineAccess: true
 })
 
 export function SignIn() {
+  const app = useApp()
 
   const [isAuthenticating, setIsAuthenticaiting] = useState(false)
 
@@ -23,7 +26,17 @@ export function SignIn() {
       const response = await GoogleSignin.signIn()
 
       if (response.idToken) {
-        console.log('ESSE É O TOKEN: => ', response)
+        const credentials = Realm.Credentials.jwt(response.idToken)
+
+        console.log(response.idToken)
+
+        app.logIn(credentials).catch((err) => {
+          console.log(err)
+          Alert.alert(
+            'Não foi possível conectar-se a sua conta Google erro com essa bosta'
+          )
+        })
+
       }
     } catch (error) {
       Alert.alert('Não foi possível conectar-se a sua conta Google')
